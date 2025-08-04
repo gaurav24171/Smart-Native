@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>x_215206_smrtnat.SmartPredictor</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <mobile_callable>false</mobile_callable>
+        <name>SmartPredictor</name>
+        <sandbox_callable>false</sandbox_callable>
+        <script><![CDATA[var IncidentPredictor = Class.create();
+IncidentPredictor.prototype = {
+    initialize: function() {
+        this.SAMPLE_SIZE = 20; 
+        this.CONFIDENCE_THRESHOLD = 0.1; 
+
+        // Stop words - to remove noise
+        this.STOP_WORDS = [
+            'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on',
+            'that', 'the', 'to', 'was', 'were', 'will', 'with', 'i', 'you', 'my', 'me', 'please', 'help', 'issue', 'issues',
+            'request', 'ticket', 'needs', 'again', 'still', 'over', 'trying'
+        ];
+
+        // --- The Synonym Map: The "Brain" of the Script ---
+        this.SYNONYM_MAP = {
+            'faulty': ['stopped working', 'not working', 'is broken', 'is dead', 'not functioning', 'hangs', 'down', 'locked from editing'],
+            'password_reset': ['forgot password', 'reset my password', 'password reset', 'locked out'],
+            'connection_issue': ['lost connection', 'unable to connect', 'cannot connect', 'can\'t connect', 'no connection', 'connectivity'],
+            'performance_issue': ['cpu load high', 'slow', 'sluggish', 'high utilization'],
+            'storage_issue': ['disk is full', 'hard drive', 'disk issue', 'low disk space', 'needs upgrade'],
+            'software_install': ['install', 'installed', 'set up'],
+            'email_issue': ['email', 'outlook', 'efax'],
+            'printer_issue': ['printer', 'toner', 'cartridge', 'print'],
+            'backup_issue': ['backup occurred', 'backup failure'],
+            'hardware_issue': ['usb port', 'disk', 'blackberry', 'docs'],
+            'network_issue': ['networking', 'wireless', 'web page', 'wiki']
+        };
+    },
+
+    predictAssignment: function(newShortDesc) {
+        if (!newShortDesc) {
+            return null;
+        }
+
+
+        var historicalIncidents = this._getHistoricalIncidents();
+        if (historicalIncidents.length === 0) {
+            gs.addInfoMessage('IncidentPredictor: No historical incidents found to learn from.');
+            return null;
+        }
+
+        var newDescProcessed = this._preprocessText(newShortDesc);
+        var corpus = historicalIncidents.map(inc => this._preprocessText(inc.short_description));
+        var tfidfResult = this._calculateTfidf(newDescProcessed, corpus);
+        var newVector = tfidfResult.newVector;
+        var historicalVectors = tfidfResult.historicalVectors;
+
+        var bestMatch = {
+            index: -1,
+            score: -1
+        };
+
+        for (var i = 0; i < historicalVectors.length; i++) {
+            var score = this._calculateCosineSimilarity(newVector, historicalVectors[i]);
+            if (score > bestMatch.score) {
+                bestMatch.score = score;
+                bestMatch.index = i;
+            }
+        }
+
+        if (bestMatch.index !== -1 && bestMatch.score >= this.CONFIDENCE_THRESHOLD) {
+            var matchedIncident = historicalIncidents[bestMatch.index];
+            return {
+                group: matchedIncident.assignment_group,
+                user: matchedIncident.assigned_to,
+                confidence: bestMatch.score,
+                matchIncident: matchedIncident.number
+            };
+        }
+
+        gs.info('IncidentPredictor: No confident match found for "' + newShortDesc + '". Highest score: ' + bestMatch.score);
+        return null;
+    },
+
+    _getHistoricalIncidents: function() {
+        var incidents = [];
+        var gr = new GlideRecord('incident');
+        gr.addQuery('state', 'IN', '6,7');
+        gr.addNotNullQuery('assignment_group');
+        gr.addNotNullQuery('assigned_to');
+        gr.orderByDesc('sys_updated_on');
+        gr.setLimit(this.SAMPLE_SIZE);
+        gr.query();
+
+        while (gr.next()) {
+            incidents.push({
+                number: gr.getValue('number'),
+                short_description: gr.getValue('short_description'),
+                assignment_group: gr.getValue('assignment_group'),
+                assigned_to: gr.getValue('assigned_to')
+            });
+        }
+        return incidents;
+    },
+
+    _preprocessText: function(text) {
+        if (!text) return [];
+
+        var normalizedText = text.toLowerCase();
+
+        // Step 1: Normalize synonyms
+        for (var canonicalTerm in this.SYNONYM_MAP) {
+            var synonyms = this.SYNONYM_MAP[canonicalTerm];
+            synonyms.forEach(function(synonym) {
+                var escapedSynonym = synonym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                var regex = new RegExp(escapedSynonym, 'g');
+                normalizedText = normalizedText.replace(regex, canonicalTerm);
+            });
+        }
+
+        // Step 2: Cleanup and tokenization on the normalized text
+        return normalizedText
+            .replace(/[^\w\s_]/g, '')
+            .split(/\s+/)
+            .filter(function(word) {
+                return word && this.STOP_WORDS.indexOf(word) === -1;
+            }, this);
+    },
+
+    _calculateTfidf: function(newDoc, corpus) {
+        var allDocs = [newDoc].concat(corpus);
+        var vocabulary = {};
+        var docFrequencies = {};
+        allDocs.forEach(function(doc) {
+            var seenWords = {};
+            doc.forEach(function(word) {
+                vocabulary[word] = 0;
+                if (!seenWords[word]) {
+                    docFrequencies[word] = (docFrequencies[word] || 0) + 1;
+                    seenWords[word] = true;
+                }
+            });
+        });
+        var vocabList = Object.keys(vocabulary);
+        var idf = {};
+        vocabList.forEach(function(word) {
+            idf[word] = Math.log(allDocs.length / (docFrequencies[word]));
+        });
+        var vectors = allDocs.map(function(doc) {
+            var vector = [];
+            var termFrequencies = {};
+            doc.forEach(function(word) {
+                termFrequencies[word] = (termFrequencies[word] || 0) + 1;
+            });
+            vocabList.forEach(function(word) {
+                var tf = termFrequencies[word] || 0;
+                vector.push(tf * idf[word]);
+            });
+            return vector;
+        });
+        return {
+            newVector: vectors[0],
+            historicalVectors: vectors.slice(1)
+        };
+    },
+
+    _calculateCosineSimilarity: function(vecA, vecB) {
+        var dotProduct = 0;
+        var magnitudeA = 0;
+        var magnitudeB = 0;
+        for (var i = 0; i < vecA.length; i++) {
+            dotProduct += vecA[i] * vecB[i];
+            magnitudeA += Math.pow(vecA[i], 2);
+            magnitudeB += Math.pow(vecB[i], 2);
+        }
+        magnitudeA = Math.sqrt(magnitudeA);
+        magnitudeB = Math.sqrt(magnitudeB);
+        if (magnitudeA === 0 || magnitudeB === 0) {
+            return 0;
+        }
+        return dotProduct / (magnitudeA * magnitudeB);
+    },
+
+    type: 'IncidentPredictor'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2025-08-04 08:23:13</sys_created_on>
+        <sys_id>1063511347036a1093f29df4316d4309</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>SmartPredictor</sys_name>
+        <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
+        <sys_update_name>sys_script_include_1063511347036a1093f29df4316d4309</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2025-08-04 08:24:07</sys_updated_on>
+    </sys_script_include>
+</record_update>
