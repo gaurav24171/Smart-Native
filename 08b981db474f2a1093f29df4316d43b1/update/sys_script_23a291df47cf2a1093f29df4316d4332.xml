@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>true</action_insert>
+        <action_query>false</action_query>
+        <action_update>false</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>incident</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>Predict Incident Assignment</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+
+    var shortDesc = current.short_description.getDisplayValue();
+
+    if (shortDesc) {
+        var predictor = new IncidentPredictor(); 
+        var prediction = predictor.predictAssignment(shortDesc);
+
+        if (prediction) {
+            current.assignment_group = prediction.group;
+            current.assigned_to = prediction.user;
+			
+            
+            var confidencePercent = (prediction.confidence * 100).toFixed(1);
+            current.work_notes = 'Automatically assigned based on similarity to incident ' +
+                                 prediction.matchIncident + ' (Confidence: ' + confidencePercent + '%).';
+            
+            gs.info('Incident ' + current.number + ' automatically assigned to ' + current.assignment_group.getDisplayValue());
+			current.update();
+        }
+    }
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2025-08-04 08:20:29</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>23a291df47cf2a1093f29df4316d4332</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Predict Incident Assignment</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
+        <sys_update_name>sys_script_23a291df47cf2a1093f29df4316d4332</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2025-08-04 08:20:29</sys_updated_on>
+        <template/>
+        <when>async_always</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=23a291df47cf2a1093f29df4316d4332"/>
+</record_update>
