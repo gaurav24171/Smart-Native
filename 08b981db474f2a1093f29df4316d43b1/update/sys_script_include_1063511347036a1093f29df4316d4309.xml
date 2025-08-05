@@ -12,30 +12,16 @@
         <script><![CDATA[var SmartPredictor = Class.create();
 SmartPredictor.prototype = {
     initialize: function() {
-        this.SAMPLE_SIZE = 20; 
-        this.CONFIDENCE_THRESHOLD = 0.1; 
+        this.SAMPLE_SIZE = parseInt(gs.getProperty('x_215206_smrtnat.sample_size'));
+        this.CONFIDENCE_THRESHOLD = parseFloat(gs.getProperty('x_215206_smrtnat.confidence_threshold'));
 
         // Stop words - to remove noise
-        this.STOP_WORDS = [
-            'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on',
-            'that', 'the', 'to', 'was', 'were', 'will', 'with', 'i', 'you', 'my', 'me', 'please', 'help', 'issue', 'issues',
-            'request', 'ticket', 'needs', 'again', 'still', 'over', 'trying'
-        ];
+        var stopWordsProperty = gs.getProperty('x_215206_smrtnat.stop_words');
+        this.STOP_WORDS = stopWordsProperty.split(',');
 
         // --- The Synonym Map: The "Brain" of the Script ---
-        this.SYNONYM_MAP = {
-            'faulty': ['stopped working', 'not working', 'is broken', 'is dead', 'not functioning', 'hangs', 'down', 'locked from editing'],
-            'password_reset': ['forgot password', 'reset my password', 'password reset', 'locked out'],
-            'connection_issue': ['lost connection', 'unable to connect', 'cannot connect', 'can\'t connect', 'no connection', 'connectivity'],
-            'performance_issue': ['cpu load high', 'slow', 'sluggish', 'high utilization'],
-            'storage_issue': ['disk is full', 'hard drive', 'disk issue', 'low disk space', 'needs upgrade'],
-            'software_install': ['install', 'installed', 'set up'],
-            'email_issue': ['email', 'outlook', 'efax'],
-            'printer_issue': ['printer', 'toner', 'cartridge', 'print'],
-            'backup_issue': ['backup occurred', 'backup failure'],
-            'hardware_issue': ['usb port', 'disk', 'blackberry', 'docs'],
-            'network_issue': ['networking', 'wireless', 'web page', 'wiki']
-        };
+        var synonymMapProperty = gs.getProperty('x_215206_smrtnat.synonym_map', '{}');
+        this.SYNONYM_MAP = JSON.parse(synonymMapProperty);
     },
 
     predictAssignment: function(newShortDesc) {
@@ -188,13 +174,13 @@ SmartPredictor.prototype = {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2025-08-04 08:23:13</sys_created_on>
         <sys_id>1063511347036a1093f29df4316d4309</sys_id>
-        <sys_mod_count>3</sys_mod_count>
+        <sys_mod_count>4</sys_mod_count>
         <sys_name>SmartPredictor</sys_name>
         <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
         <sys_update_name>sys_script_include_1063511347036a1093f29df4316d4309</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2025-08-04 08:34:33</sys_updated_on>
+        <sys_updated_on>2025-08-04 09:09:32</sys_updated_on>
     </sys_script_include>
 </record_update>
