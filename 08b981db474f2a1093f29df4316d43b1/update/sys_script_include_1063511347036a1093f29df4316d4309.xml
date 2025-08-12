@@ -19,7 +19,7 @@ SmartPredictor.prototype = {
         var stopWordsProperty = gs.getProperty('x_215206_smrtnat.stop_words');
         this.STOP_WORDS = stopWordsProperty.split(',');
 
-        // --- The Synonym Map: The "Brain" of the Script ---
+        // The Synonyms Map: The "Brain" of the Script ---
         var synonymMapProperty = gs.getProperty('x_215206_smrtnat.synonym_map', '{}');
         this.SYNONYM_MAP = JSON.parse(synonymMapProperty);
     },
@@ -29,10 +29,9 @@ SmartPredictor.prototype = {
             return null;
         }
 
-
         var historicalIncidents = this._getHistoricalIncidents();
         if (historicalIncidents.length === 0) {
-            gs.addInfoMessage('SmartPredictor: No historical incidents found to learn from.');
+            gs.info('SmartPredictor: No historical incidents found to learn from.');
             return null;
         }
 
@@ -48,18 +47,16 @@ SmartPredictor.prototype = {
         };
 
         for (var i = 0; i < historicalVectors.length; i++) {
-            var score = this._calculateCosineSimilarity(newVector, historicalVectors[i]);
+            var score = this._calculateSimilarity(newVector, historicalVectors[i]);
             if (score > bestMatch.score) {
                 bestMatch.score = score;
                 bestMatch.index = i;
             }
         }
-
         if (bestMatch.index !== -1 && bestMatch.score >= this.CONFIDENCE_THRESHOLD) {
             var matchedIncident = historicalIncidents[bestMatch.index];
             return {
                 group: matchedIncident.assignment_group,
-                user: matchedIncident.assigned_to,
                 confidence: bestMatch.score,
                 matchIncident: matchedIncident.number
             };
@@ -72,7 +69,8 @@ SmartPredictor.prototype = {
     _getHistoricalIncidents: function() {
         var incidents = [];
         var gr = new GlideRecord('incident');
-        gr.addQuery('state', 'IN', '6,7');
+        gr.addQuery('active', false);
+		gr.addQuery('x_215206_smrtnat_smart_assigned', false);
         gr.addNotNullQuery('assignment_group');
         gr.addNotNullQuery('assigned_to');
         gr.orderByDesc('sys_updated_on');
@@ -84,7 +82,6 @@ SmartPredictor.prototype = {
                 number: gr.getValue('number'),
                 short_description: gr.getValue('short_description'),
                 assignment_group: gr.getValue('assignment_group'),
-                assigned_to: gr.getValue('assigned_to')
             });
         }
         return incidents;
@@ -151,7 +148,7 @@ SmartPredictor.prototype = {
         };
     },
 
-    _calculateCosineSimilarity: function(vecA, vecB) {
+    _calculateSimilarity: function(vecA, vecB) {
         var dotProduct = 0;
         var magnitudeA = 0;
         var magnitudeB = 0;
@@ -174,13 +171,13 @@ SmartPredictor.prototype = {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2025-08-04 08:23:13</sys_created_on>
         <sys_id>1063511347036a1093f29df4316d4309</sys_id>
-        <sys_mod_count>4</sys_mod_count>
+        <sys_mod_count>11</sys_mod_count>
         <sys_name>SmartPredictor</sys_name>
         <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
         <sys_update_name>sys_script_include_1063511347036a1093f29df4316d4309</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2025-08-04 09:09:32</sys_updated_on>
+        <sys_updated_on>2025-08-08 11:38:07</sys_updated_on>
     </sys_script_include>
 </record_update>
