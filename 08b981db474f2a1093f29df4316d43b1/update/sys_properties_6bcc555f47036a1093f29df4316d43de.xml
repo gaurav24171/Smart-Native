@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties">
+    <sys_properties action="INSERT_OR_UPDATE">
+        <choices/>
+        <description/>
+        <ignore_cache>true</ignore_cache>
+        <is_private>false</is_private>
+        <name>x_215206_smrtnat.synonym_map</name>
+        <read_roles/>
+        <suffix>synonym_map</suffix>
+        <sys_class_name>sys_properties</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2025-08-04 09:04:14</sys_created_on>
+        <sys_id>6bcc555f47036a1093f29df4316d43de</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_name>x_215206_smrtnat.synonym_map</sys_name>
+        <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
+        <sys_update_name>sys_properties_6bcc555f47036a1093f29df4316d43de</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2025-08-04 13:00:09</sys_updated_on>
+        <type>string</type>
+        <value>{&#13;
+    "faulty": [&#13;
+        "stopped working", "not working", "is broken", "is dead", "not functioning", "hangs", "down", "freeze", "causes the application to freeze", "blank messages", "clicking noises", "failure"&#13;
+    ],&#13;
+    "password_reset": [&#13;
+        "forgot password", "reset my password", "password reset", "locked out", "credentials", "login", "account"&#13;
+    ],&#13;
+    "permission_issue": [&#13;
+        "permission issue", "locked from editing", "cannot edit", "can't edit", "read-only", "access"&#13;
+    ],&#13;
+    "connection_issue": [&#13;
+        "lost connection", "unable to connect", "cannot connect", "can't connect", "no connection", "connectivity", "disconnecting", "offline", "no internet access"&#13;
+    ],&#13;
+    "performance_issue": [&#13;
+        "cpu load high", "slow", "sluggish", "high utilization", "taking a long time", "performance issue"&#13;
+    ],&#13;
+    "storage_issue": [&#13;
+        "disk is full", "hard drive", "disk issue", "low disk space", "needs upgrade"&#13;
+    ],&#13;
+    "software_install": [&#13;
+        "install", "installed", "set up", "installation", "required", "oracle"&#13;
+    ],&#13;
+    "email_issue": [&#13;
+        "email", "outlook", "inbox", "messages", "attachment", "attachments", "email client", "sending emails", "files"&#13;
+    ],&#13;
+    "efax_issue": [&#13;
+        "efax", "electronic fax", "inbound", "outgoing", "receive", "delivered", "missing"&#13;
+    ],&#13;
+    "outage_issue": [&#13;
+        "outage", "server down"&#13;
+    ],&#13;
+    "printer_issue": [&#13;
+        "printer", "toner", "cartridge", "print", "printing", "visio", "diagrams"&#13;
+    ],&#13;
+    "backup_issue": [&#13;
+        "backup occurred", "backup failure", "nightly backup", "backup job", "backup verification"&#13;
+    ],&#13;
+    "hardware_issue": [&#13;
+        "usb port", "disk", "blackberry", "device", "slot"&#13;
+    ],&#13;
+    "network_issue": [&#13;
+        "networking", "wireless", "web page", "wiki", "wifi", "sharepoint", "site"&#13;
+    ],&#13;
+    "document_issue": [&#13;
+        "pdf", "docs", "document"&#13;
+    ]&#13;
+}</value>
+        <write_roles/>
+    </sys_properties>
+    <sys_translated_text action="delete_multiple" query="documentkey=6bcc555f47036a1093f29df4316d43de"/>
+</record_update>

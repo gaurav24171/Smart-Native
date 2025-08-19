@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties">
+    <sys_properties action="INSERT_OR_UPDATE">
+        <choices>Stores JSON data mapping assignment groups to an array of short description "fingerprints" for predictive assignment.</choices>
+        <description/>
+        <ignore_cache>true</ignore_cache>
+        <is_private>false</is_private>
+        <name>x_215206_smrtnat.assignment_fingerprints</name>
+        <read_roles/>
+        <suffix>assignment_fingerprints</suffix>
+        <sys_class_name>sys_properties</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2025-08-12 07:08:32</sys_created_on>
+        <sys_id>d2fecab94713221093f29df4316d43b3</sys_id>
+        <sys_mod_count>8</sys_mod_count>
+        <sys_name>x_215206_smrtnat.assignment_fingerprints</sys_name>
+        <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
+        <sys_update_name>sys_properties_d2fecab94713221093f29df4316d43b3</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2025-08-12 08:48:07</sys_updated_on>
+        <type>string</type>
+        <value>{"287ebd7da9fe198100f92cc8d1d2154e":["Unable to connect to email","Lost connection to the wireless network","Issue with networking"],"d625dccec0a8016700a222a0f7900d06":["My disk is still having issues. Can't delete a file","Forgot email password","Reset my password","Can't read email","Issue with a web page on wiki","my PDF docs are all locked from editing"],"8a5055c9c61122780043563ef53438e3":["File Server is 80% full - Needs upgrade","Printer in my office is out of toner","Need new Blackberry set up","The USB port on my PC stopped working","CPU load high for over 10 minutes","EMAIL Server Down Again","Seem to have an issue with my hard drive..."],"287ee6fea9fe198100ada7950d0b1b73":["Need Oracle 10GR2 installed","Customer didn't receive eFax"],"8a4dde73c6112278017a6a4baf547aa7":["Hangs when trying to print VISIO document","EMAIL is slow when an attachment is involved","Does not look like a backup occurred last night"],"9ee15afd677222007d59cbb35685efec":["Google Chrome Not working"]}</value>
+        <write_roles/>
+    </sys_properties>
+    <sys_translated_text action="delete_multiple" query="documentkey=d2fecab94713221093f29df4316d43b3"/>
+</record_update>

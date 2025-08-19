@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="x_215206_smrtnat_smart_assigned" label="Smart Assigned" language="en" table="task">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>x_215206_smrtnat_smart_assigned</element>
+            <help/>
+            <hint/>
+            <label>Smart Assigned</label>
+            <language>en</language>
+            <name>task</name>
+            <plural>Smart Assigned</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2025-08-04 09:01:43</sys_created_on>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Smart Assigned</sys_name>
+            <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
+            <sys_update_name>sys_documentation_task_x_215206_smrtnat_smart_assigned_en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2025-08-04 09:01:43</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

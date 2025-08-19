@@ -36,17 +36,17 @@
         var prediction = predictor.predictAssignment(shortDesc);
 
         if (prediction) {
-            current.assignment_group = prediction.group;
-            current.assigned_to = prediction.user;
+            current.assignment_group = prediction.group ;
+			current.x_215206_smrtnat_smart_assigned = true;
 			
             
             var confidencePercent = (prediction.confidence * 100).toFixed(1);
-            current.work_notes = 'Automatically assigned based on similarity to incident ' +
-                                 prediction.matchIncident + ' (Confidence: ' + confidencePercent + '%).';
-            
-            gs.info('Incident ' + current.number + ' automatically assigned to ' + current.assignment_group.getDisplayValue());
+            current.work_notes = 'Automatically assigned based on similarity to past incident (Confidence: ' + confidencePercent + '%).';
 			current.update();
-        }
+        }else{
+			current.work_notes = 'Unable to assign incident automatically.';
+			current.update();
+		}
     }
 
 })(current, previous);]]></script>
@@ -56,7 +56,7 @@
         <sys_domain>global</sys_domain>
         <sys_domain_path>/</sys_domain_path>
         <sys_id>23a291df47cf2a1093f29df4316d4332</sys_id>
-        <sys_mod_count>1</sys_mod_count>
+        <sys_mod_count>8</sys_mod_count>
         <sys_name>Predict Incident Assignment</sys_name>
         <sys_overrides/>
         <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
@@ -64,7 +64,7 @@
         <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
         <sys_update_name>sys_script_23a291df47cf2a1093f29df4316d4332</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2025-08-04 08:26:06</sys_updated_on>
+        <sys_updated_on>2025-08-12 08:46:43</sys_updated_on>
         <template/>
         <when>async_always</when>
     </sys_script>

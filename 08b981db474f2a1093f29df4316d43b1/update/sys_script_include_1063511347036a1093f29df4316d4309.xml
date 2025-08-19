@@ -12,30 +12,14 @@
         <script><![CDATA[var SmartPredictor = Class.create();
 SmartPredictor.prototype = {
     initialize: function() {
-        this.SAMPLE_SIZE = 20; 
-        this.CONFIDENCE_THRESHOLD = 0.1; 
+        this.CONFIDENCE_THRESHOLD = parseFloat(gs.getProperty('x_215206_smrtnat.confidence_threshold'));
+        var stopWordsProperty = gs.getProperty('x_215206_smrtnat.stop_words');
+        this.STOP_WORDS = stopWordsProperty.split(',');
+        var synonymMapProperty = gs.getProperty('x_215206_smrtnat.synonym_map', '{}');
+        this.SYNONYM_MAP = JSON.parse(synonymMapProperty);
 
-        // Stop words - to remove noise
-        this.STOP_WORDS = [
-            'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on',
-            'that', 'the', 'to', 'was', 'were', 'will', 'with', 'i', 'you', 'my', 'me', 'please', 'help', 'issue', 'issues',
-            'request', 'ticket', 'needs', 'again', 'still', 'over', 'trying'
-        ];
-
-        // --- The Synonym Map: The "Brain" of the Script ---
-        this.SYNONYM_MAP = {
-            'faulty': ['stopped working', 'not working', 'is broken', 'is dead', 'not functioning', 'hangs', 'down', 'locked from editing'],
-            'password_reset': ['forgot password', 'reset my password', 'password reset', 'locked out'],
-            'connection_issue': ['lost connection', 'unable to connect', 'cannot connect', 'can\'t connect', 'no connection', 'connectivity'],
-            'performance_issue': ['cpu load high', 'slow', 'sluggish', 'high utilization'],
-            'storage_issue': ['disk is full', 'hard drive', 'disk issue', 'low disk space', 'needs upgrade'],
-            'software_install': ['install', 'installed', 'set up'],
-            'email_issue': ['email', 'outlook', 'efax'],
-            'printer_issue': ['printer', 'toner', 'cartridge', 'print'],
-            'backup_issue': ['backup occurred', 'backup failure'],
-            'hardware_issue': ['usb port', 'disk', 'blackberry', 'docs'],
-            'network_issue': ['networking', 'wireless', 'web page', 'wiki']
-        };
+        var fingerprintProperty = gs.getProperty('x_215206_smrtnat.assignment_fingerprints', '{}');
+        this.FINGERPRINT_DATA = JSON.parse(fingerprintProperty);
     },
 
     predictAssignment: function(newShortDesc) {
@@ -43,14 +27,29 @@ SmartPredictor.prototype = {
             return null;
         }
 
+        var historicalIncidents = [];
+        for (var groupId in this.FINGERPRINT_DATA) {
+            var shortDescriptions = this.FINGERPRINT_DATA[groupId];
+            shortDescriptions.forEach(function(desc) {
+                historicalIncidents.push({
+                    short_description: desc,
+                    assignment_group: groupId,
+                    number: 'historical fingerprint'
+                });
+            });
+        }
 
-        var historicalIncidents = this._getHistoricalIncidents();
         if (historicalIncidents.length === 0) {
-            gs.addInfoMessage('SmartPredictor: No historical incidents found to learn from.');
+            gs.info('SmartPredictor: No historical fingerprints found to learn from.');
             return null;
         }
 
         var newDescProcessed = this._preprocessText(newShortDesc);
+        var MINIMUM_KEYWORDS = 2;
+        if (newDescProcessed.length < MINIMUM_KEYWORDS) {
+            gs.info('SmartPredictor: Short description "' + newShortDesc + '" is too generic to analyze. Skipping assignment.');
+            return null; // Don't even try to predict
+        }
         var corpus = historicalIncidents.map(inc => this._preprocessText(inc.short_description));
         var tfidfResult = this._calculateTfidf(newDescProcessed, corpus);
         var newVector = tfidfResult.newVector;
@@ -62,7 +61,7 @@ SmartPredictor.prototype = {
         };
 
         for (var i = 0; i < historicalVectors.length; i++) {
-            var score = this._calculateCosineSimilarity(newVector, historicalVectors[i]);
+            var score = this._calculateSimilarity(newVector, historicalVectors[i]);
             if (score > bestMatch.score) {
                 bestMatch.score = score;
                 bestMatch.index = i;
@@ -73,7 +72,6 @@ SmartPredictor.prototype = {
             var matchedIncident = historicalIncidents[bestMatch.index];
             return {
                 group: matchedIncident.assignment_group,
-                user: matchedIncident.assigned_to,
                 confidence: bestMatch.score,
                 matchIncident: matchedIncident.number
             };
@@ -83,33 +81,12 @@ SmartPredictor.prototype = {
         return null;
     },
 
-    _getHistoricalIncidents: function() {
-        var incidents = [];
-        var gr = new GlideRecord('incident');
-        gr.addQuery('state', 'IN', '6,7');
-        gr.addNotNullQuery('assignment_group');
-        gr.addNotNullQuery('assigned_to');
-        gr.orderByDesc('sys_updated_on');
-        gr.setLimit(this.SAMPLE_SIZE);
-        gr.query();
-
-        while (gr.next()) {
-            incidents.push({
-                number: gr.getValue('number'),
-                short_description: gr.getValue('short_description'),
-                assignment_group: gr.getValue('assignment_group'),
-                assigned_to: gr.getValue('assigned_to')
-            });
-        }
-        return incidents;
-    },
 
     _preprocessText: function(text) {
         if (!text) return [];
 
         var normalizedText = text.toLowerCase();
 
-        // Step 1: Normalize synonyms
         for (var canonicalTerm in this.SYNONYM_MAP) {
             var synonyms = this.SYNONYM_MAP[canonicalTerm];
             synonyms.forEach(function(synonym) {
@@ -119,7 +96,6 @@ SmartPredictor.prototype = {
             });
         }
 
-        // Step 2: Cleanup and tokenization on the normalized text
         return normalizedText
             .replace(/[^\w\s_]/g, '')
             .split(/\s+/)
@@ -165,7 +141,7 @@ SmartPredictor.prototype = {
         };
     },
 
-    _calculateCosineSimilarity: function(vecA, vecB) {
+    _calculateSimilarity: function(vecA, vecB) {
         var dotProduct = 0;
         var magnitudeA = 0;
         var magnitudeB = 0;
@@ -188,13 +164,13 @@ SmartPredictor.prototype = {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2025-08-04 08:23:13</sys_created_on>
         <sys_id>1063511347036a1093f29df4316d4309</sys_id>
-        <sys_mod_count>3</sys_mod_count>
+        <sys_mod_count>15</sys_mod_count>
         <sys_name>SmartPredictor</sys_name>
         <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
         <sys_update_name>sys_script_include_1063511347036a1093f29df4316d4309</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2025-08-04 08:34:33</sys_updated_on>
+        <sys_updated_on>2025-08-12 07:39:12</sys_updated_on>
     </sys_script_include>
 </record_update>
