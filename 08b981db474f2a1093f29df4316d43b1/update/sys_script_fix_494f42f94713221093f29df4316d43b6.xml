@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_fix">
+    <sys_script_fix action="INSERT_OR_UPDATE">
+        <before>false</before>
+        <description/>
+        <name>Populate Initial Fingerprints</name>
+        <record_for_rollback>true</record_for_rollback>
+        <script><![CDATA[/**
+ * One-time script to populate the 'x_215206_smrtnat.assignment_fingerprints' system property.
+ *
+ * This script queries the most recent 1000 closed incidents that have an assignment group,
+ * extracts their short descriptions, and organizes them into a JSON object.
+ * The resulting JSON is then saved to the system property to provide an initial
+ * dataset for the SmartPredictor script include.
+ */
+
+(function populateInitialFingerprints() {
+
+    var FINGERPRINT_PROPERTY = 'x_215206_smrtnat.assignment_fingerprints';
+    var MAX_RECORDS_TO_SCAN = 1000;
+    var fingerprints = {};
+    var incidentsProcessed = 0;
+
+    gs.info('Starting one-time population of assignment fingerprints...');
+
+    var grIncident = new GlideRecord('incident');
+    grIncident.addQuery('active', false);
+	grIncident.addQuery('x_215206_smrtnat_smart_assigned', false);
+    grIncident.addNotNullQuery('assignment_group');
+    grIncident.orderByDesc('sys_updated_on');
+    grIncident.setLimit(MAX_RECORDS_TO_SCAN);
+    grIncident.query();
+
+    while (grIncident.next()) {
+        var assignmentGroup = grIncident.assignment_group.getValue();
+        var shortDesc = grIncident.short_description.getDisplayValue();
+
+        if (assignmentGroup && shortDesc) {
+            if (!fingerprints[assignmentGroup]) {
+                fingerprints[assignmentGroup] = [];
+            }
+
+            if (fingerprints[assignmentGroup].indexOf(shortDesc) === -1) {
+                 fingerprints[assignmentGroup].push(shortDesc);
+            }
+           
+            incidentsProcessed++;
+        }
+    }
+
+    if (incidentsProcessed > 0) {
+        var newFingerprintJSON = JSON.stringify(fingerprints, null, 4); // Pretty-print JSON for readability
+        gs.setProperty(FINGERPRINT_PROPERTY, newFingerprintJSON);
+        gs.info('Successfully populated assignment fingerprints. Processed ' + incidentsProcessed + ' incidents across ' + Object.keys(fingerprints).length + ' groups.');
+        gs.info('System property "' + FINGERPRINT_PROPERTY + '" has been updated.');
+    } else {
+        gs.warn('No incidents found matching the criteria. The fingerprint property was not updated.');
+    }
+
+})();]]></script>
+        <sys_class_name>sys_script_fix</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2025-08-12 07:11:15</sys_created_on>
+        <sys_id>494f42f94713221093f29df4316d43b6</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>Populate Initial Fingerprints</sys_name>
+        <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
+        <sys_update_name>sys_script_fix_494f42f94713221093f29df4316d43b6</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2025-08-12 07:15:28</sys_updated_on>
+        <unloadable>false</unloadable>
+    </sys_script_fix>
+</record_update>

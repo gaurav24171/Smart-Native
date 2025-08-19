@@ -11,16 +11,16 @@
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2025-08-04 09:06:42</sys_created_on>
         <sys_id>7d3d5d5f47036a1093f29df4316d436c</sys_id>
-        <sys_mod_count>0</sys_mod_count>
+        <sys_mod_count>2</sys_mod_count>
         <sys_name>x_215206_smrtnat.confidence_threshold</sys_name>
         <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
         <sys_policy/>
         <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
         <sys_update_name>sys_properties_7d3d5d5f47036a1093f29df4316d436c</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2025-08-04 09:06:42</sys_updated_on>
+        <sys_updated_on>2025-08-12 07:34:46</sys_updated_on>
         <type>string</type>
-        <value>0.1</value>
+        <value>0.3</value>
         <write_roles/>
     </sys_properties>
     <sys_translated_text action="delete_multiple" query="documentkey=7d3d5d5f47036a1093f29df4316d436c"/>

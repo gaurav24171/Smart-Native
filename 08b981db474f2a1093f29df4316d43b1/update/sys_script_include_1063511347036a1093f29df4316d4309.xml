@@ -12,16 +12,14 @@
         <script><![CDATA[var SmartPredictor = Class.create();
 SmartPredictor.prototype = {
     initialize: function() {
-        this.SAMPLE_SIZE = parseInt(gs.getProperty('x_215206_smrtnat.sample_size'));
         this.CONFIDENCE_THRESHOLD = parseFloat(gs.getProperty('x_215206_smrtnat.confidence_threshold'));
-
-        // Stop words - to remove noise
         var stopWordsProperty = gs.getProperty('x_215206_smrtnat.stop_words');
         this.STOP_WORDS = stopWordsProperty.split(',');
-
-        // The Synonyms Map: The "Brain" of the Script ---
         var synonymMapProperty = gs.getProperty('x_215206_smrtnat.synonym_map', '{}');
         this.SYNONYM_MAP = JSON.parse(synonymMapProperty);
+
+        var fingerprintProperty = gs.getProperty('x_215206_smrtnat.assignment_fingerprints', '{}');
+        this.FINGERPRINT_DATA = JSON.parse(fingerprintProperty);
     },
 
     predictAssignment: function(newShortDesc) {
@@ -29,13 +27,29 @@ SmartPredictor.prototype = {
             return null;
         }
 
-        var historicalIncidents = this._getHistoricalIncidents();
+        var historicalIncidents = [];
+        for (var groupId in this.FINGERPRINT_DATA) {
+            var shortDescriptions = this.FINGERPRINT_DATA[groupId];
+            shortDescriptions.forEach(function(desc) {
+                historicalIncidents.push({
+                    short_description: desc,
+                    assignment_group: groupId,
+                    number: 'historical fingerprint'
+                });
+            });
+        }
+
         if (historicalIncidents.length === 0) {
-            gs.info('SmartPredictor: No historical incidents found to learn from.');
+            gs.info('SmartPredictor: No historical fingerprints found to learn from.');
             return null;
         }
 
         var newDescProcessed = this._preprocessText(newShortDesc);
+        var MINIMUM_KEYWORDS = 2;
+        if (newDescProcessed.length < MINIMUM_KEYWORDS) {
+            gs.info('SmartPredictor: Short description "' + newShortDesc + '" is too generic to analyze. Skipping assignment.');
+            return null; // Don't even try to predict
+        }
         var corpus = historicalIncidents.map(inc => this._preprocessText(inc.short_description));
         var tfidfResult = this._calculateTfidf(newDescProcessed, corpus);
         var newVector = tfidfResult.newVector;
@@ -53,6 +67,7 @@ SmartPredictor.prototype = {
                 bestMatch.index = i;
             }
         }
+
         if (bestMatch.index !== -1 && bestMatch.score >= this.CONFIDENCE_THRESHOLD) {
             var matchedIncident = historicalIncidents[bestMatch.index];
             return {
@@ -66,33 +81,12 @@ SmartPredictor.prototype = {
         return null;
     },
 
-    _getHistoricalIncidents: function() {
-        var incidents = [];
-        var gr = new GlideRecord('incident');
-        gr.addQuery('active', false);
-		gr.addQuery('x_215206_smrtnat_smart_assigned', false);
-        gr.addNotNullQuery('assignment_group');
-        gr.addNotNullQuery('assigned_to');
-        gr.orderByDesc('sys_updated_on');
-        gr.setLimit(this.SAMPLE_SIZE);
-        gr.query();
-
-        while (gr.next()) {
-            incidents.push({
-                number: gr.getValue('number'),
-                short_description: gr.getValue('short_description'),
-                assignment_group: gr.getValue('assignment_group'),
-            });
-        }
-        return incidents;
-    },
 
     _preprocessText: function(text) {
         if (!text) return [];
 
         var normalizedText = text.toLowerCase();
 
-        // Step 1: Normalize synonyms
         for (var canonicalTerm in this.SYNONYM_MAP) {
             var synonyms = this.SYNONYM_MAP[canonicalTerm];
             synonyms.forEach(function(synonym) {
@@ -102,7 +96,6 @@ SmartPredictor.prototype = {
             });
         }
 
-        // Step 2: Cleanup and tokenization on the normalized text
         return normalizedText
             .replace(/[^\w\s_]/g, '')
             .split(/\s+/)
@@ -171,13 +164,13 @@ SmartPredictor.prototype = {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2025-08-04 08:23:13</sys_created_on>
         <sys_id>1063511347036a1093f29df4316d4309</sys_id>
-        <sys_mod_count>11</sys_mod_count>
+        <sys_mod_count>15</sys_mod_count>
         <sys_name>SmartPredictor</sys_name>
         <sys_package display_value="Smart Native" source="x_215206_smrtnat">08b981db474f2a1093f29df4316d43b1</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Smart Native">08b981db474f2a1093f29df4316d43b1</sys_scope>
         <sys_update_name>sys_script_include_1063511347036a1093f29df4316d4309</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2025-08-08 11:38:07</sys_updated_on>
+        <sys_updated_on>2025-08-12 07:39:12</sys_updated_on>
     </sys_script_include>
 </record_update>
